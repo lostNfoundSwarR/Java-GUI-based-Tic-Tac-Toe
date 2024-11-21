@@ -38,7 +38,9 @@ class Player {
      }
 
      //Move method of player
-     void move(JButton source, JButton[] btnArray, char currentPlayer, char[] emptySpaces, HashMap<JButton, Integer> btnMap) {
+     boolean move(JButton source, JButton[] btnArray, char currentPlayer, char[] emptySpaces, HashMap<JButton, Integer> btnMap) {
+          boolean validMove = false;
+          
           //Get's the index of button from the hash map
           int btnIndex = btnMap.get(source);
 
@@ -47,10 +49,10 @@ class Player {
                btnArray[btnIndex].setEnabled(false);
      
                emptySpaces[btnIndex] = currentPlayer;
+               validMove = true;
           }
-          else {
-               return;
-          }
+          
+          return validMove;
      }
 }
 
@@ -271,13 +273,7 @@ public class GameWin extends JFrame implements ActionListener {
                     break;
                }
           }
-     
-          // If no winner and board is full, it's a draw
-          if (winner == ' ' && isBoardFull()) {
-               statusText.setText("It's a draw!");
-               disableBtns(); // Disable all buttons
-          }
-     
+
           return winner;
      }
      
@@ -289,6 +285,11 @@ public class GameWin extends JFrame implements ActionListener {
                }
           }
           return true; // All spaces are filled
+     }
+
+     //Checks for draw
+     static boolean checkDraw() {
+          return isBoardFull() && checkWinner() == ' ';
      }
  
      //Executes computer move
@@ -343,27 +344,32 @@ public class GameWin extends JFrame implements ActionListener {
           JButton source = (JButton) (event.getSource());
 
           if(source != restartBtn) {
-               player.move(source, btnArray, currentPlayer, emptySpaces, btnMap);
-               
-               if(checkWinner() != ' ') {
-                    disableBtns();
-
-                    char winner = checkWinner();
-
-                    if(winner == player.chr) {
-                         statusText.setText("You won");
+               if(player.move(source, btnArray, currentPlayer, emptySpaces, btnMap)) {
+                    if(checkWinner() != ' ') {
+                         disableBtns();
+     
+                         char winner = checkWinner();
+     
+                         if(winner == player.chr) {
+                              statusText.setText("You won");
+                         }
+                         else {
+                              statusText.setText("Computer won");
+                         }
+     
+                         return;
                     }
-                    else {
-                         statusText.setText("Computer won");
+                    else if(checkDraw()) {
+                         statusText.setText("It's a draw!");
+                         disableBtns(); // Disable all buttons
+                         return;
                     }
-
-                    return;
+     
+                    changePlayer();
+     
+                    executeComMove();
+                    disableBtns(); 
                }
-
-               changePlayer();
-
-               executeComMove();
-               disableBtns(); 
           }
           else {
                restartGame();
